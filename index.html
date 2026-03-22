@@ -853,7 +853,7 @@ async function sendMsg() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-api-key': AXIS_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-6',
         max_tokens: 1500,
         system: buildSystem(),
         tools: TOOLS,
@@ -900,7 +900,7 @@ async function sendMsg() {
         const res2 = await fetch('https://api.anthropic.com/v1/messages', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'x-api-key': AXIS_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-          body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 800, system: buildSystem(), tools: TOOLS, messages: OS.messages })
+          body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 800, system: buildSystem(), tools: TOOLS, messages: OS.messages })
         });
         const d2 = await res2.json();
         hideTyping();
