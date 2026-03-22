@@ -1,0 +1,1379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JordanOS v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+/* ── TOKENS ───────────────────────────────────── */
+:root {
+  --bg:       #12141a;
+  --bg2:      #181b24;
+  --bg3:      #1e2130;
+  --panel:    #1c2035;
+  --panel2:   #232840;
+  --glass:    rgba(255,255,255,0.04);
+  --border:   rgba(255,255,255,0.07);
+  --border2:  rgba(255,255,255,0.13);
+  --accent:   #7B6EFF;
+  --accent2:  #5548CC;
+  --gold:     #F0B429;
+  --green:    #34D399;
+  --red:      #F87171;
+  --orange:   #FB923C;
+  --blue:     #60A5FA;
+  --pink:     #F472B6;
+  --text:     #E2E6F0;
+  --text2:    #8891AA;
+  --text3:    #4A5168;
+  --mono:     'JetBrains Mono', monospace;
+  --body:     'DM Sans', sans-serif;
+  --head:     'Syne', sans-serif;
+  --r:        10px;
+  --r2:       14px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html,body { height:100%; background:var(--bg); color:var(--text); font-family:var(--body); overflow:hidden; font-size:14px; }
+
+/* ── LAYOUT ───────────────────────────────────── */
+.os { display:grid; grid-template-columns:248px 1fr 352px; grid-template-rows:52px 1fr; height:100vh; }
+
+/* ── TOPBAR ───────────────────────────────────── */
+.topbar {
+  grid-column:1/-1; background:var(--bg2);
+  border-bottom:1px solid var(--border);
+  display:flex; align-items:center; justify-content:space-between; padding:0 18px;
+}
+.brand { font-family:var(--head); font-weight:800; font-size:16px; letter-spacing:-.3px; display:flex; align-items:center; gap:10px; }
+.brand-dot { width:8px; height:8px; border-radius:50%; background:var(--accent); box-shadow:0 0 10px var(--accent); animation:breathe 2.5s ease-in-out infinite; }
+@keyframes breathe { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.85)} }
+.brand span { color:var(--accent); }
+.topbar-center { display:flex; align-items:center; gap:8px; }
+.clock-pill { font-family:var(--mono); font-size:12px; color:var(--text2); background:var(--bg3); border:1px solid var(--border); border-radius:20px; padding:3px 12px; }
+.version-pill { font-family:var(--mono); font-size:10px; color:var(--text3); background:transparent; border:1px solid var(--border); border-radius:20px; padding:3px 10px; letter-spacing:.5px; }
+.topbar-right { display:flex; align-items:center; gap:10px; }
+.topbar-stat { font-size:11px; color:var(--text3); font-family:var(--mono); }
+.topbar-stat strong { color:var(--gold); font-weight:500; }
+.av { width:30px; height:30px; border-radius:50%; background:linear-gradient(135deg,var(--accent),#4040bb); display:flex; align-items:center; justify-content:center; font-family:var(--head); font-weight:700; font-size:12px; cursor:pointer; }
+
+/* ── SIDEBAR ───────────────────────────────────── */
+.sidebar { background:var(--bg2); border-right:1px solid var(--border); display:flex; flex-direction:column; overflow:hidden; }
+.sb-top { padding:14px; flex-shrink:0; }
+.sb-label { font-size:9px; font-weight:600; letter-spacing:2px; color:var(--text3); text-transform:uppercase; margin-bottom:8px; padding:0 4px; }
+.nav { display:flex; flex-direction:column; gap:1px; }
+.nav-item { display:flex; align-items:center; gap:9px; padding:8px 10px; border-radius:8px; cursor:pointer; font-size:13px; color:var(--text2); transition:all .15s; user-select:none; }
+.nav-item:hover { background:var(--glass); color:var(--text); }
+.nav-item.active { background:rgba(123,110,255,.12); color:var(--accent); }
+.nav-icon { font-size:14px; width:18px; text-align:center; flex-shrink:0; }
+.nav-badge { margin-left:auto; background:var(--accent); color:#fff; font-size:9px; font-weight:700; padding:1px 6px; border-radius:8px; font-family:var(--mono); }
+.nav-badge.urgent { background:var(--red); }
+.nav-badge.gold { background:var(--gold); color:#000; }
+
+/* ── SIDEBAR WIDGETS ───────────────────────────── */
+.sb-widgets { flex:1; overflow-y:auto; padding:0 14px 14px; display:flex; flex-direction:column; gap:10px; }
+.sb-widgets::-webkit-scrollbar { width:3px; }
+.sb-widgets::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
+
+.widget { background:var(--panel); border:1px solid var(--border); border-radius:var(--r2); padding:13px; }
+.widget-title { font-size:9px; font-weight:600; letter-spacing:2px; color:var(--text3); text-transform:uppercase; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between; }
+.widget-title-accent { color:var(--accent); }
+
+/* Earnings */
+.earn-amount { font-family:var(--head); font-size:24px; font-weight:800; line-height:1; margin-bottom:3px; }
+.earn-sub { font-size:11px; color:var(--text3); margin-bottom:10px; }
+.prog-track { height:4px; background:var(--bg3); border-radius:2px; overflow:hidden; }
+.prog-fill { height:100%; border-radius:2px; background:linear-gradient(90deg,var(--accent),var(--gold)); transition:width .9s cubic-bezier(.34,1.56,.64,1); }
+
+/* Stats row */
+.stats-row { display:flex; flex-direction:column; gap:6px; }
+.stat-row { display:flex; justify-content:space-between; align-items:center; font-size:11px; }
+.stat-label { color:var(--text3); }
+.stat-val { font-family:var(--mono); font-size:11px; font-weight:500; }
+
+/* Habits */
+.habit-rows { display:flex; flex-direction:column; gap:5px; }
+.habit-row { display:flex; align-items:center; gap:6px; }
+.habit-name { font-size:11px; color:var(--text2); flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.h-dots { display:flex; gap:2px; }
+.h-dot { width:9px; height:9px; border-radius:3px; background:var(--bg3); border:1px solid var(--border); cursor:pointer; transition:all .2s; flex-shrink:0; }
+.h-dot.on { background:var(--green); border-color:var(--green); box-shadow:0 0 5px rgba(52,211,153,.4); }
+.h-dot:hover { border-color:var(--text3); }
+
+/* Pipeline */
+.pipeline-items { display:flex; flex-direction:column; gap:4px; }
+.pipe-item { display:flex; align-items:center; gap:7px; padding:6px 8px; background:var(--bg3); border-radius:7px; font-size:11px; }
+.pipe-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+.pipe-name { flex:1; color:var(--text2); min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.pipe-val { font-family:var(--mono); color:var(--gold); font-size:10px; font-weight:500; }
+.pipe-stage { font-size:9px; color:var(--text3); }
+
+/* Notes */
+.note-items { display:flex; flex-direction:column; gap:4px; }
+.note-item { font-size:11px; color:var(--text2); padding:5px 8px; background:var(--bg3); border-radius:6px; border-left:2px solid var(--accent); line-height:1.4; }
+
+/* ── MAIN ───────────────────────────────────── */
+.main { background:var(--bg); display:flex; flex-direction:column; overflow:hidden; }
+.tabs { display:flex; align-items:flex-end; gap:1px; padding:10px 16px 0; background:var(--bg2); border-bottom:1px solid var(--border); }
+.tab { padding:7px 14px; font-size:12px; font-weight:500; color:var(--text3); border-radius:7px 7px 0 0; cursor:pointer; transition:all .15s; border:1px solid transparent; border-bottom:none; user-select:none; }
+.tab:hover { color:var(--text2); }
+.tab.active { background:var(--bg); color:var(--text); border-color:var(--border); }
+.view { flex:1; overflow-y:auto; padding:16px; display:none; }
+.view.active { display:block; }
+.view::-webkit-scrollbar { width:4px; }
+.view::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
+
+/* Section heading */
+.sec-head { font-family:var(--head); font-size:14px; font-weight:700; color:var(--text); margin-bottom:14px; display:flex; align-items:center; gap:10px; }
+.sec-head small { font-size:11px; font-weight:400; color:var(--text3); font-family:var(--body); }
+.sec-head-action { margin-left:auto; font-family:var(--body); font-size:11px; font-weight:500; color:var(--accent); cursor:pointer; background:rgba(123,110,255,.1); border:1px solid rgba(123,110,255,.2); padding:4px 10px; border-radius:6px; transition:all .15s; }
+.sec-head-action:hover { background:rgba(123,110,255,.2); }
+
+/* ── SCHEDULE ───────────────────────────────── */
+.sched-grid { display:flex; flex-direction:column; gap:1px; }
+.sched-row { display:grid; grid-template-columns:58px 1fr; min-height:46px; }
+.sched-time { font-family:var(--mono); font-size:10px; color:var(--text3); padding-top:13px; padding-right:12px; text-align:right; flex-shrink:0; }
+.sched-event { border-left:2px solid var(--border); padding:9px 13px; border-radius:0 8px 8px 0; cursor:pointer; transition:all .15s; position:relative; }
+.sched-event:hover { background:var(--glass); }
+.sched-event.work    { border-left-color:var(--accent); }
+.sched-event.health  { border-left-color:var(--green);  }
+.sched-event.money   { border-left-color:var(--gold);   }
+.sched-event.personal{ border-left-color:var(--orange); }
+.sched-event.current { background:rgba(248,113,113,.05); border-left-color:var(--red); }
+.sched-event.new-item { animation:itemFlash .9s ease; }
+@keyframes itemFlash { 0%{background:rgba(123,110,255,.2);border-color:var(--accent)} 100%{background:transparent} }
+.ev-title { font-size:13px; font-weight:500; color:var(--text); }
+.ev-sub   { font-size:11px; color:var(--text3); margin-top:2px; }
+.ev-tag   { display:inline-block; font-size:9px; font-weight:600; letter-spacing:1px; text-transform:uppercase; padding:2px 7px; border-radius:4px; margin-top:4px; }
+.tag-work    { background:rgba(123,110,255,.14); color:var(--accent); }
+.tag-health  { background:rgba(52,211,153,.12);  color:var(--green);  }
+.tag-money   { background:rgba(240,180,41,.12);  color:var(--gold);   }
+.tag-personal{ background:rgba(251,146,60,.12);  color:var(--orange); }
+
+/* ── TASKS ───────────────────────────────────── */
+.tasks-toolbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+.pri-section { margin-bottom:18px; }
+.pri-label { font-size:9px; font-weight:600; letter-spacing:2px; color:var(--text3); text-transform:uppercase; margin-bottom:7px; display:flex; align-items:center; gap:8px; }
+.pri-label::after { content:''; flex:1; height:1px; background:var(--border); }
+.task-card { display:flex; align-items:flex-start; gap:9px; padding:10px 12px; border-radius:9px; border:1px solid var(--border); background:var(--panel); margin-bottom:3px; cursor:pointer; transition:all .15s; }
+.task-card:hover { border-color:var(--border2); background:var(--panel2); }
+.task-card.done { opacity:.4; }
+.task-card.new-item { animation:itemFlash .9s ease; }
+.chk { width:17px; height:17px; border-radius:5px; border:1.5px solid var(--border2); flex-shrink:0; margin-top:1px; display:flex; align-items:center; justify-content:center; font-size:9px; transition:all .15s; }
+.task-card.done .chk { background:var(--green); border-color:var(--green); color:#fff; }
+.task-info { flex:1; min-width:0; }
+.task-title { font-size:13px; font-weight:500; color:var(--text); }
+.task-card.done .task-title { text-decoration:line-through; color:var(--text3); }
+.task-chips { display:flex; align-items:center; gap:6px; margin-top:5px; flex-wrap:wrap; }
+.chip { font-size:9px; font-weight:600; letter-spacing:.8px; text-transform:uppercase; padding:2px 7px; border-radius:4px; }
+.task-due { font-size:10px; color:var(--text3); font-family:var(--mono); }
+.task-pay { font-size:10px; font-family:var(--mono); color:var(--gold); }
+.task-why { font-size:10px; color:var(--text3); font-style:italic; margin-top:2px; }
+
+/* ── WEEKLY ───────────────────────────────────── */
+.week-wrap { display:grid; grid-template-columns:52px repeat(7,1fr); gap:1px; background:var(--border); border-radius:12px; overflow:hidden; }
+.wk-corner { background:var(--panel); }
+.wk-head { background:var(--panel); padding:8px 4px; text-align:center; }
+.wk-day-name { font-size:9px; font-weight:600; color:var(--text3); text-transform:uppercase; letter-spacing:1px; }
+.wk-day-num { font-family:var(--head); font-size:17px; font-weight:700; color:var(--text); }
+.wk-day-num.today { color:var(--accent); }
+.wk-time { background:var(--bg2); padding:5px 7px; font-family:var(--mono); font-size:9px; color:var(--text3); text-align:right; display:flex; align-items:center; justify-content:flex-end; }
+.wk-cell { background:var(--bg2); min-height:34px; padding:2px; }
+.wk-cell:hover { background:var(--panel); }
+.wk-ev { font-size:9px; font-weight:600; border-radius:3px; padding:2px 5px; margin-bottom:1px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.wev-work { background:rgba(123,110,255,.22); color:var(--accent); }
+.wev-health { background:rgba(52,211,153,.18); color:var(--green); }
+.wev-money { background:rgba(240,180,41,.18); color:var(--gold); }
+
+/* ── GOALS ───────────────────────────────────── */
+.goal-card { background:var(--panel); border:1px solid var(--border); border-radius:var(--r2); padding:15px; margin-bottom:10px; transition:all .15s; }
+.goal-card:hover { border-color:var(--border2); }
+.goal-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:10px; }
+.goal-name { font-family:var(--head); font-size:14px; font-weight:700; }
+.goal-meta { display:flex; align-items:center; gap:6px; }
+.goal-pct { font-family:var(--mono); font-size:13px; font-weight:500; }
+.goal-bar-wrap { margin-bottom:10px; }
+.goal-bar-track { height:5px; background:var(--bg3); border-radius:3px; overflow:hidden; }
+.goal-bar-fill { height:100%; border-radius:3px; transition:width .9s cubic-bezier(.34,1.56,.64,1); }
+.milestones { display:flex; flex-direction:column; gap:4px; }
+.ms { display:flex; align-items:center; gap:7px; font-size:11px; color:var(--text2); }
+.ms.done { color:var(--text3); text-decoration:line-through; }
+.ms-dot { width:6px; height:6px; border-radius:50%; border:1.5px solid var(--border2); flex-shrink:0; transition:all .3s; }
+.ms.done .ms-dot { background:var(--green); border-color:var(--green); }
+
+/* ── AI PANEL ───────────────────────────────── */
+.ai-panel { background:var(--bg2); border-left:1px solid var(--border); display:flex; flex-direction:column; overflow:hidden; }
+
+.ai-top { padding:13px 15px; border-bottom:1px solid var(--border); background:var(--panel); display:flex; align-items:center; gap:11px; }
+.ai-orb-wrap { position:relative; flex-shrink:0; }
+.ai-orb { width:38px; height:38px; border-radius:50%; background:radial-gradient(circle at 38% 32%, rgba(123,110,255,.9), rgba(70,50,200,.4)); border:1px solid rgba(123,110,255,.35); display:flex; align-items:center; justify-content:center; font-size:15px; box-shadow:0 0 22px rgba(123,110,255,.3); animation:orbGlow 3.5s ease-in-out infinite; }
+@keyframes orbGlow { 0%,100%{box-shadow:0 0 22px rgba(123,110,255,.3)} 50%{box-shadow:0 0 40px rgba(123,110,255,.55)} }
+.ai-ring { position:absolute; inset:-3px; border-radius:50%; border:1px solid rgba(123,110,255,.15); animation:ringPulse 3.5s ease-in-out infinite; }
+@keyframes ringPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.3;transform:scale(1.1)} }
+.ai-meta { flex:1; }
+.ai-name-row { font-family:var(--head); font-size:13px; font-weight:700; color:var(--text); display:flex; align-items:center; gap:7px; }
+.ai-badge { font-size:9px; font-weight:600; background:rgba(123,110,255,.15); color:var(--accent); padding:2px 7px; border-radius:20px; letter-spacing:.5px; }
+.ai-status { font-size:10px; color:var(--green); display:flex; align-items:center; gap:4px; margin-top:2px; }
+.ai-status::before { content:''; width:5px; height:5px; border-radius:50%; background:currentColor; display:inline-block; }
+.ai-action-count { font-family:var(--mono); font-size:9px; color:var(--text3); margin-top:1px; }
+
+/* Messages */
+.ai-msgs { flex:1; overflow-y:auto; padding:12px; display:flex; flex-direction:column; gap:9px; }
+.ai-msgs::-webkit-scrollbar { width:3px; }
+.ai-msgs::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
+
+.msg { display:flex; flex-direction:column; gap:3px; }
+.msg.user { align-items:flex-end; }
+.msg.ai   { align-items:flex-start; }
+.bubble { padding:9px 12px; border-radius:12px; font-size:12.5px; line-height:1.58; max-width:95%; }
+.msg.ai .bubble { background:var(--panel2); color:var(--text); border-radius:4px 12px 12px 12px; border:1px solid var(--border); }
+.msg.user .bubble { background:var(--accent); color:#fff; border-radius:12px 4px 12px 12px; }
+.msg-time { font-family:var(--mono); font-size:9px; color:var(--text3); }
+
+/* Action pills */
+.actions-done { display:flex; flex-direction:column; gap:3px; margin-top:5px; }
+.action-pill { display:inline-flex; align-items:center; gap:5px; font-size:10px; font-weight:600; padding:3px 9px; border-radius:20px; width:fit-content; letter-spacing:.2px; }
+.pill-ok { background:rgba(52,211,153,.1); border:1px solid rgba(52,211,153,.2); color:var(--green); }
+.pill-info { background:rgba(96,165,250,.1); border:1px solid rgba(96,165,250,.2); color:var(--blue); }
+.pill-warn { background:rgba(240,180,41,.1); border:1px solid rgba(240,180,41,.2); color:var(--gold); }
+
+/* Typing */
+.typing-wrap { display:flex; align-items:center; gap:4px; padding:9px 12px; background:var(--panel2); border-radius:4px 12px 12px 12px; border:1px solid var(--border); width:fit-content; }
+.typing-dot { width:5px; height:5px; border-radius:50%; background:var(--text3); animation:tdot 1.3s infinite; }
+.typing-dot:nth-child(2){animation-delay:.18s} .typing-dot:nth-child(3){animation-delay:.36s}
+@keyframes tdot { 0%,100%{transform:translateY(0);opacity:.3} 50%{transform:translateY(-4px);opacity:1} }
+
+/* Quick chips */
+.quick-wrap { padding:8px 12px; border-top:1px solid var(--border); display:flex; flex-wrap:wrap; gap:4px; }
+.qchip { font-size:10px; padding:4px 9px; border-radius:20px; border:1px solid var(--border2); background:var(--bg3); color:var(--text2); cursor:pointer; transition:all .15s; white-space:nowrap; font-family:var(--body); }
+.qchip:hover { border-color:var(--accent); color:var(--text); background:rgba(123,110,255,.08); }
+
+/* Input */
+.ai-input-row { padding:10px 12px; border-top:1px solid var(--border); background:var(--panel); display:flex; gap:7px; align-items:flex-end; }
+.ai-textarea { flex:1; background:var(--bg3); border:1px solid var(--border2); border-radius:10px; padding:9px 12px; color:var(--text); font-size:13px; font-family:var(--body); resize:none; outline:none; min-height:38px; max-height:110px; line-height:1.45; transition:border .15s; }
+.ai-textarea::placeholder { color:var(--text3); }
+.ai-textarea:focus { border-color:rgba(123,110,255,.4); }
+.send-btn { width:36px; height:36px; border-radius:9px; background:var(--accent); border:none; cursor:pointer; color:#fff; font-size:14px; display:flex; align-items:center; justify-content:center; transition:all .15s; flex-shrink:0; }
+.send-btn:hover { background:var(--accent2); transform:scale(1.05); }
+.send-btn:disabled { opacity:.35; cursor:not-allowed; transform:none; }
+
+/* ── MODAL ───────────────────────────────────── */
+.overlay { position:fixed; inset:0; background:rgba(0,0,0,.55); display:none; align-items:center; justify-content:center; z-index:200; backdrop-filter:blur(6px); }
+.overlay.open { display:flex; }
+.modal { background:var(--panel); border:1px solid var(--border2); border-radius:16px; padding:24px; width:420px; max-width:92vw; }
+.modal h3 { font-family:var(--head); font-size:16px; font-weight:700; margin-bottom:16px; }
+.field { margin-bottom:11px; }
+.field label { font-size:10px; font-weight:600; color:var(--text2); letter-spacing:.6px; display:block; margin-bottom:5px; text-transform:uppercase; }
+.field input, .field select, .field textarea { width:100%; background:var(--bg3); border:1px solid var(--border2); border-radius:8px; padding:8px 12px; color:var(--text); font-size:13px; font-family:var(--body); outline:none; transition:border .15s; }
+.field input:focus,.field select:focus { border-color:rgba(123,110,255,.45); }
+.field select option { background:var(--bg3); }
+.modal-btns { display:flex; gap:8px; justify-content:flex-end; margin-top:16px; }
+.btn { padding:7px 15px; border-radius:8px; font-size:13px; font-weight:500; cursor:pointer; border:none; font-family:var(--body); transition:all .15s; }
+.btn-ghost { background:transparent; color:var(--text2); border:1px solid var(--border2); }
+.btn-ghost:hover { background:var(--glass); }
+.btn-accent { background:var(--accent); color:#fff; }
+.btn-accent:hover { background:var(--accent2); }
+
+/* ── TOAST ───────────────────────────────────── */
+.toast { position:fixed; bottom:18px; right:18px; z-index:300; background:var(--panel2); border:1px solid var(--border2); border-radius:11px; padding:11px 15px; font-size:13px; color:var(--text); transform:translateY(80px); opacity:0; transition:all .3s cubic-bezier(.34,1.56,.64,1); max-width:320px; display:flex; align-items:center; gap:9px; box-shadow:0 8px 32px rgba(0,0,0,.4); }
+.toast.show { transform:translateY(0); opacity:1; }
+
+/* ── CHANGELOG (collapsible log of AXIS actions) ── */
+.changelog-wrap { border-top:1px solid var(--border); background:var(--bg2); max-height:0; overflow:hidden; transition:max-height .3s ease; }
+.changelog-wrap.open { max-height:160px; }
+.changelog { overflow-y:auto; max-height:160px; padding:8px 12px; }
+.changelog::-webkit-scrollbar { width:3px; }
+.changelog::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
+.log-item { font-size:10px; font-family:var(--mono); color:var(--text3); padding:3px 0; border-bottom:1px solid var(--border); display:flex; gap:8px; }
+.log-time { color:var(--text3); flex-shrink:0; }
+.log-action { color:var(--green); }
+.log-detail { color:var(--text2); flex:1; }
+.log-toggle { font-size:10px; color:var(--text3); cursor:pointer; padding:4px 12px; border-top:1px solid var(--border); text-align:center; background:var(--bg2); transition:color .15s; }
+.log-toggle:hover { color:var(--text2); }
+</style>
+</head>
+<body>
+<div class="os">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="brand"><div class="brand-dot"></div>Jordan<span>OS</span> <span style="color:var(--text3);font-weight:400;font-size:13px">v2</span></div>
+    <div class="topbar-center">
+      <div class="clock-pill" id="clock">--:-- --</div>
+      <div class="version-pill">MODULAR</div>
+    </div>
+    <div class="topbar-right">
+      <div class="topbar-stat">Revenue <strong id="top-earn">$4,800</strong></div>
+      <div class="topbar-stat" style="color:var(--text3)">·</div>
+      <div class="topbar-stat">Tasks left <strong id="top-tasks" style="color:var(--red)">8</strong></div>
+      <div id="save-status" style="font-family:var(--mono);font-size:11px;color:var(--text3);transition:color .3s">⟳ Loading…</div>
+      <div class="av">J</div>
+    </div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sb-top">
+      <div class="sb-label">Views</div>
+      <div class="nav">
+        <div class="nav-item active" onclick="switchTab('daily',this)"><span class="nav-icon">📅</span>Daily Schedule</div>
+        <div class="nav-item" onclick="switchTab('weekly',this)"><span class="nav-icon">🗓</span>Weekly View</div>
+        <div class="nav-item" onclick="switchTab('tasks',this)"><span class="nav-icon">✅</span>Tasks <span class="nav-badge urgent" id="nb-tasks">8</span></div>
+        <div class="nav-item" onclick="switchTab('goals',this)"><span class="nav-icon">🎯</span>Goals</div>
+        <div class="nav-item" onclick="switchTab('pipeline',this)"><span class="nav-icon">💼</span>Pipeline <span class="nav-badge gold" id="nb-pipe">3</span></div>
+        <div class="nav-item" onclick="switchTab('notes',this)"><span class="nav-icon">📝</span>Notes</div>
+      </div>
+    </div>
+
+    <div class="sb-widgets" id="sb-widgets">
+      <!-- Earnings -->
+      <div class="widget">
+        <div class="widget-title"><span>💰 Revenue</span><span class="widget-title-accent" id="earn-pct-label">60%</span></div>
+        <div class="earn-amount" id="earn-display">$4,800</div>
+        <div class="earn-sub" id="earn-sub">of $8,000 goal</div>
+        <div class="prog-track"><div class="prog-fill" id="earn-bar" style="width:60%"></div></div>
+      </div>
+
+      <!-- Quick stats -->
+      <div class="widget">
+        <div class="widget-title"><span>📊 Today</span></div>
+        <div class="stats-row">
+          <div class="stat-row"><span class="stat-label">Tasks done</span><span class="stat-val" id="stat-tasks" style="color:var(--green)">1/9</span></div>
+          <div class="stat-row"><span class="stat-label">Habits done</span><span class="stat-val" id="stat-habits" style="color:var(--accent)">3/7</span></div>
+          <div class="stat-row"><span class="stat-label">AXIS actions</span><span class="stat-val" id="stat-actions" style="color:var(--blue)">0</span></div>
+          <div class="stat-row"><span class="stat-label">Pipeline value</span><span class="stat-val" id="stat-pipe" style="color:var(--gold)">$3,450</span></div>
+        </div>
+      </div>
+
+      <!-- Habits -->
+      <div class="widget">
+        <div class="widget-title"><span>🔥 Habits</span><span style="color:var(--text3);font-size:9px">7 days →</span></div>
+        <div class="habit-rows" id="habit-rows"></div>
+      </div>
+
+      <!-- Notes preview -->
+      <div class="widget" id="notes-widget">
+        <div class="widget-title"><span>📝 Pinned Notes</span></div>
+        <div class="note-items" id="notes-preview"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN VIEWS -->
+  <div class="main">
+    <div class="tabs">
+      <div class="tab active" id="tab-daily"    onclick="switchTab('daily',null)">Daily</div>
+      <div class="tab"        id="tab-weekly"   onclick="switchTab('weekly',null)">Weekly</div>
+      <div class="tab"        id="tab-tasks"    onclick="switchTab('tasks',null)">Tasks</div>
+      <div class="tab"        id="tab-goals"    onclick="switchTab('goals',null)">Goals</div>
+      <div class="tab"        id="tab-pipeline" onclick="switchTab('pipeline',null)">Pipeline</div>
+      <div class="tab"        id="tab-notes"    onclick="switchTab('notes',null)">Notes</div>
+    </div>
+
+    <div class="view active" id="view-daily">
+      <div class="sec-head">Today's Schedule <small id="today-label"></small><span class="sec-head-action" onclick="openModal('modal-event')">+ Add Event</span></div>
+      <div class="sched-grid" id="sched-grid"></div>
+    </div>
+
+    <div class="view" id="view-weekly">
+      <div class="sec-head">Week at a Glance <small>Mar 21–27 · 2026</small></div>
+      <div class="week-wrap" id="week-wrap"></div>
+    </div>
+
+    <div class="view" id="view-tasks">
+      <div class="tasks-toolbar">
+        <div class="sec-head" style="margin:0">Tasks</div>
+        <button class="btn btn-accent" style="font-size:12px;padding:6px 12px" onclick="openModal('modal-task')">+ Add Task</button>
+      </div>
+      <div id="task-list"></div>
+    </div>
+
+    <div class="view" id="view-goals">
+      <div class="sec-head">Goals & Projects<span class="sec-head-action" onclick="openModal('modal-goal')">+ Add Goal</span></div>
+      <div id="goal-list"></div>
+    </div>
+
+    <div class="view" id="view-pipeline">
+      <div class="sec-head">Sales Pipeline<span class="sec-head-action" onclick="openModal('modal-pipe')">+ Add Deal</span></div>
+      <div id="pipeline-list"></div>
+    </div>
+
+    <div class="view" id="view-notes">
+      <div class="sec-head">Notes<span class="sec-head-action" onclick="openModal('modal-note')">+ Add Note</span></div>
+      <div id="notes-list"></div>
+    </div>
+  </div>
+
+  <!-- AI PANEL -->
+  <div class="ai-panel">
+    <div class="ai-top">
+      <div class="ai-orb-wrap">
+        <div class="ai-orb">✦</div>
+        <div class="ai-ring"></div>
+      </div>
+      <div class="ai-meta">
+        <div class="ai-name-row">AXIS <span class="ai-badge">v2 · LIVE</span></div>
+        <div class="ai-status" id="ai-status">Online · Full access</div>
+        <div class="ai-action-count" id="action-count">0 actions taken this session</div>
+      </div>
+    </div>
+
+    <div class="ai-msgs" id="ai-msgs"></div>
+
+    <div class="changelog-wrap" id="changelog-wrap">
+      <div class="changelog" id="changelog"></div>
+    </div>
+    <div class="log-toggle" onclick="toggleLog()" id="log-toggle">▾ Show action log</div>
+
+    <div class="quick-wrap">
+      <div class="qchip" onclick="q('Add appointment: prospect call tomorrow 3pm')">📅 Set appointment</div>
+      <div class="qchip" onclick="q('I just closed a $1,200 deal — log it and mark the THRIVE invoice task done')">💰 Log deal</div>
+      <div class="qchip" onclick="q('Add to my pipeline: Agency owner named Mike, $2,500, in proposal stage')">💼 Add to pipeline</div>
+      <div class="qchip" onclick="q('Check off gym, cold shower, and reading for today')">💪 Log habits</div>
+      <div class="qchip" onclick="q('What should I focus on right now? Organize my priorities.')">🔥 Prioritize me</div>
+      <div class="qchip" onclick="q('Add a note: call Simir Thursday about APEX demo feedback')">📝 Add note</div>
+    </div>
+
+    <div class="ai-input-row">
+      <textarea class="ai-textarea" id="ai-input" placeholder="Tell AXIS anything — it will figure out what to do..." rows="1"
+        onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+      <button class="send-btn" id="send-btn" onclick="sendMsg()">➤</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="overlay" id="modal-event">
+  <div class="modal">
+    <h3>Add Event</h3>
+    <div class="field"><label>Time</label><input type="text" id="ev-time" placeholder="e.g. 2:00 PM"></div>
+    <div class="field"><label>Title</label><input type="text" id="ev-title" placeholder="Event name"></div>
+    <div class="field"><label>Category</label>
+      <select id="ev-cat"><option value="work">💼 Work</option><option value="money">💰 Income</option><option value="health">💪 Health</option><option value="personal">🧠 Personal</option></select>
+    </div>
+    <div class="field"><label>Note (optional)</label><input type="text" id="ev-sub" placeholder="Brief note"></div>
+    <div class="modal-btns">
+      <button class="btn btn-ghost" onclick="closeModal('modal-event')">Cancel</button>
+      <button class="btn btn-accent" onclick="addEventManual()">Add</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="modal-task">
+  <div class="modal">
+    <h3>Add Task</h3>
+    <div class="field"><label>Title</label><input type="text" id="tk-title" placeholder="What needs done?"></div>
+    <div class="field"><label>Category</label>
+      <select id="tk-cat"><option value="work">💼 Work</option><option value="money">💰 Income</option><option value="health">💪 Health</option><option value="personal">🧠 Personal</option></select>
+    </div>
+    <div class="field"><label>Priority</label>
+      <select id="tk-pri"><option value="high">🔴 High</option><option value="med">🟡 Medium</option><option value="low">🟢 Low</option></select>
+    </div>
+    <div class="field"><label>Due Date</label><input type="date" id="tk-due"></div>
+    <div class="field"><label>Linked Pay</label><input type="text" id="tk-pay" placeholder="e.g. $500 commission"></div>
+    <div class="field"><label>Why it matters</label><input type="text" id="tk-why" placeholder="One line reason"></div>
+    <div class="modal-btns">
+      <button class="btn btn-ghost" onclick="closeModal('modal-task')">Cancel</button>
+      <button class="btn btn-accent" onclick="addTaskManual()">Add</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="modal-goal">
+  <div class="modal">
+    <h3>Add Goal</h3>
+    <div class="field"><label>Title</label><input type="text" id="gl-title" placeholder="Goal name"></div>
+    <div class="field"><label>Category</label>
+      <select id="gl-cat"><option value="work">💼 Work</option><option value="money">💰 Income</option><option value="health">💪 Health</option><option value="personal">🧠 Personal</option></select>
+    </div>
+    <div class="field"><label>Starting Progress %</label><input type="number" id="gl-pct" placeholder="0" min="0" max="100"></div>
+    <div class="field"><label>Milestones (comma separated)</label><input type="text" id="gl-ms" placeholder="Step 1, Step 2, Step 3"></div>
+    <div class="modal-btns">
+      <button class="btn btn-ghost" onclick="closeModal('modal-goal')">Cancel</button>
+      <button class="btn btn-accent" onclick="addGoalManual()">Add</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="modal-pipe">
+  <div class="modal">
+    <h3>Add Pipeline Deal</h3>
+    <div class="field"><label>Contact / Company</label><input type="text" id="pp-name" placeholder="Name"></div>
+    <div class="field"><label>Deal Value</label><input type="text" id="pp-val" placeholder="e.g. $2,500"></div>
+    <div class="field"><label>Stage</label>
+      <select id="pp-stage"><option>Lead</option><option>Contacted</option><option>Proposal</option><option>Negotiation</option><option>Closed</option></select>
+    </div>
+    <div class="field"><label>Notes</label><input type="text" id="pp-notes" placeholder="Any context"></div>
+    <div class="modal-btns">
+      <button class="btn btn-ghost" onclick="closeModal('modal-pipe')">Cancel</button>
+      <button class="btn btn-accent" onclick="addPipeManual()">Add</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="modal-note">
+  <div class="modal">
+    <h3>Add Note</h3>
+    <div class="field"><label>Note</label><textarea id="nt-body" style="border-radius:8px;padding:8px 12px;font-family:var(--body);font-size:13px;background:var(--bg3);border:1px solid var(--border2);color:var(--text);width:100%;outline:none;resize:vertical;min-height:80px" placeholder="Type your note..."></textarea></div>
+    <div class="field"><label>Tag</label>
+      <select id="nt-tag"><option value="general">📌 General</option><option value="follow-up">📞 Follow-up</option><option value="idea">💡 Idea</option><option value="reminder">⏰ Reminder</option></select>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-ghost" onclick="closeModal('modal-note')">Cancel</button>
+      <button class="btn btn-accent" onclick="addNoteManual()">Add</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span id="toast-icon">✅</span><span id="toast-msg"></span></div>
+
+<script>
+// ═══════════════════════════════════════════════════
+// STATE — single source of truth, fully modular
+// AXIS can read and write all of this
+// ═══════════════════════════════════════════════════
+const OS = {
+  meta: {
+    version: 2,
+    owner: "Jordan",
+    location: "Farmington, Utah",
+    axisActionCount: 0,
+    sessionLog: [],
+  },
+  earnings: { current: 4800, goal: 8000, currency: "USD" },
+  habits: [
+    { id:"h1", name:"🏋️ Gym",        days:[1,1,1,0,0,0,0] },
+    { id:"h2", name:"🏃 Running",     days:[1,1,0,0,0,0,0] },
+    { id:"h3", name:"📖 Read",        days:[1,1,1,0,0,0,0] },
+    { id:"h4", name:"🥗 Eat Clean",   days:[1,0,1,0,0,0,0] },
+    { id:"h5", name:"✍️ Journal",     days:[0,1,1,0,0,0,0] },
+    { id:"h6", name:"⏰ Wake 5AM",    days:[1,1,0,0,0,0,0] },
+    { id:"h7", name:"🚿 Cold Shower", days:[1,1,1,0,0,0,0] },
+  ],
+  tasks: [
+    { id:"t1", title:"Finish APEX voice prototype demo",      cat:"work",   pri:"high", due:"2026-03-22", pay:"",      done:false, why:"Simir needs it for Thursday pitch." },
+    { id:"t2", title:"Follow up with 3 MP leads",             cat:"money",  pri:"high", due:"2026-03-21", pay:"$750",  done:false, why:"Pipeline going cold." },
+    { id:"t3", title:"Record SOS.AI onboarding walkthrough",  cat:"work",   pri:"high", due:"2026-03-24", pay:"",      done:false, why:"Blocking customer activation." },
+    { id:"t4", title:"Set up GoHighLevel automation",         cat:"money",  pri:"high", due:"2026-03-23", pay:"$400/mo",done:false,why:"Saves 2hrs/week." },
+    { id:"t5", title:"Send THRIVE agency invoice",            cat:"money",  pri:"high", due:"2026-03-21", pay:"$1,200",done:false, why:"Already delivered. Just send it." },
+    { id:"t6", title:"Review THRIVE curriculum module 6",     cat:"work",   pri:"med",  due:"2026-03-25", pay:"",      done:true,  why:"Content quality check." },
+    { id:"t7", title:"Plan next week OSOS brand content",     cat:"work",   pri:"med",  due:"2026-03-27", pay:"",      done:false, why:"Content = inbound leads." },
+    { id:"t8", title:"Weekly workout plan review",            cat:"health", pri:"low",  due:"2026-03-22", pay:"",      done:false, why:"Consistency check." },
+    { id:"t9", title:"Read 30 pages sales book",              cat:"personal",pri:"low", due:"2026-03-21", pay:"",      done:false, why:"Compound learning." },
+  ],
+  schedule: [
+    { id:"s1",  time:"5:00 AM",  title:"Wake up + Cold Shower",       cat:"health",   sub:"Morning activation ritual" },
+    { id:"s2",  time:"5:15 AM",  title:"Journaling",                  cat:"personal", sub:"Write 3 priorities for today" },
+    { id:"s3",  time:"5:45 AM",  title:"Read / Learn",                cat:"personal", sub:"30 pages or 1 lesson" },
+    { id:"s4",  time:"6:15 AM",  title:"Gym",                         cat:"health",   sub:"Strength training — 45 min" },
+    { id:"s5",  time:"7:15 AM",  title:"Breakfast + Review Dashboard",cat:"personal", sub:"Check tasks, earnings, messages" },
+    { id:"s6",  time:"8:00 AM",  title:"Deep Work — APEX Build",      cat:"work",     sub:"Voice layer + simulation engine" },
+    { id:"s7",  time:"10:00 AM", title:"MP Lead Follow-Ups",          cat:"money",    sub:"Call 3 leads, book appointments" },
+    { id:"s8",  time:"11:00 AM", title:"THRIVE Content Review",       cat:"work",     sub:"Module 6 curriculum" },
+    { id:"s9",  time:"12:00 PM", title:"Lunch",                       cat:"health",   sub:"High protein meal" },
+    { id:"s10", time:"1:00 PM",  title:"Sales Call with Simir",       cat:"work",     sub:"MP + APEX roadmap" },
+    { id:"s11", time:"2:30 PM",  title:"Invoice & Admin",             cat:"money",    sub:"Send THRIVE license — $1,200" },
+    { id:"s12", time:"3:00 PM",  title:"Deep Work — SOS.AI Video",   cat:"work",     sub:"Record onboarding walkthrough" },
+    { id:"s13", time:"5:00 PM",  title:"Running",                     cat:"health",   sub:"30 min outdoor run" },
+    { id:"s14", time:"6:00 PM",  title:"OSOS Brand Content",          cat:"work",     sub:"Weekly content plan" },
+    { id:"s15", time:"7:00 PM",  title:"Family / Personal Time",      cat:"personal", sub:"Be present. Disconnect." },
+    { id:"s16", time:"9:00 PM",  title:"Review + Plan Tomorrow",      cat:"personal", sub:"Close the day." },
+    { id:"s17", time:"9:30 PM",  title:"Wind Down",                   cat:"health",   sub:"No screens. Sleep by 10." },
+  ],
+  goals: [
+    { id:"g1", title:"APEX / SOS.AI MVP Launch",       cat:"work",   pct:48, color:"var(--accent)", milestones:["Voice layer ✓","Simulation engine ✓","Evaluation engine","Coaching engine","Beta testing","Public launch"] },
+    { id:"g2", title:"$8,000 Monthly Revenue",         cat:"money",  pct:60, color:"var(--gold)",   milestones:["$2k ✓","$4k ✓","$6k","$8k goal","$15k"] },
+    { id:"g3", title:"THRIVE by OSOS White-Label",     cat:"work",   pct:75, color:"var(--green)",  milestones:["Curriculum ✓","Platform ✓","Internal testing ✓","First agency client","10+ owners"] },
+    { id:"g4", title:"MP Appointment-Selling System",  cat:"money",  pct:35, color:"var(--orange)", milestones:["POC ✓","GHL automation","AI outreach","10 appts/week","Systemized"] },
+    { id:"g5", title:"Fitness & Discipline",           cat:"health", pct:70, color:"var(--green)",  milestones:["Gym streak ✓","Meal prep ✓","Wake 5AM 5x/week","Daily cardio","Peak shape"] },
+  ],
+  pipeline: [
+    { id:"p1", name:"Agency Owner — Thrive Hive", value:"$1,500", stage:"Proposal",   color:"var(--accent)", notes:"Waiting on contract signature" },
+    { id:"p2", name:"MP Lead — Dave (3 policies)", value:"$750",   stage:"Negotiation",color:"var(--gold)",   notes:"Close call this week" },
+    { id:"p3", name:"OSOS White-Label — New Agency",value:"$1,200",stage:"Contacted",  color:"var(--green)",  notes:"Intro call went well" },
+  ],
+  notes: [
+    { id:"n1", body:"Call Simir Thursday — bring APEX demo outline", tag:"follow-up" },
+    { id:"n2", body:"GHL automation: use aged mailer lead list from March batch", tag:"idea" },
+    { id:"n3", body:"Invoice amount for THRIVE license: $1,200 — send TODAY", tag:"reminder" },
+  ],
+  // AI conversation history
+  messages: [],
+  nextId: 100,
+};
+
+// ═══════════════════════════════════════════════════
+// OPEN-ENDED TOOL SYSTEM
+// ═══════════════════════════════════════════════════
+// Instead of rigid tools, AXIS gets one powerful meta-tool:
+// it returns a structured JSON action plan, we execute it.
+
+const TOOLS = [
+  {
+    name: "update_os",
+    description: `Modify any part of Jordan's OS. You can do ANYTHING: add/edit/delete schedules, tasks, habits, goals, pipeline deals, notes, earnings, or even create entirely new sections/categories. Return an array of operations.
+
+Each operation has:
+- type: "add" | "edit" | "delete" | "message"
+- target: "schedule" | "task" | "habit" | "goal" | "pipeline" | "note" | "earnings" | "meta"
+- data: the object to add or edit fields (for edit/delete, include id)
+- confirm: human-readable one-liner of what this operation does
+
+For earnings, data = { add: number, note: string } to increment, or { set: number } to set directly.
+For meta, data = { key: string, value: any }.
+For message target, just add a confirm string — it shows as info without changing state.
+For new items you create, generate a unique id like "t42", "s88", "h9", etc.`,
+    input_schema: {
+      type: "object",
+      properties: {
+        operations: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              type:    { type: "string", enum: ["add","edit","delete","message"] },
+              target:  { type: "string" },
+              data:    { type: "object" },
+              confirm: { type: "string" },
+            },
+            required: ["type","target","confirm"]
+          }
+        },
+        response: { type: "string", description: "What AXIS says to Jordan after executing all operations. Direct, tactical, conversational." }
+      },
+      required: ["operations", "response"]
+    }
+  }
+];
+
+// ═══════════════════════════════════════════════════
+// EXECUTE OPERATIONS
+// ═══════════════════════════════════════════════════
+function execOps(operations) {
+  const results = [];
+  for (const op of operations) {
+    try {
+      const r = execOp(op);
+      results.push({ op, result: r, ok: true });
+    } catch(e) {
+      results.push({ op, result: e.message, ok: false });
+    }
+  }
+  // Re-render everything
+  renderAll();
+  return results;
+}
+
+function execOp(op) {
+  const { type, target, data } = op;
+  if (type === "message") return op.confirm; // info only
+
+  switch(target) {
+    case "earnings":
+      if (data.add)  OS.earnings.current += data.add;
+      if (data.set !== undefined) OS.earnings.current = data.set;
+      if (data.goal) OS.earnings.goal = data.goal;
+      break;
+
+    case "schedule":
+      if (type === "add") {
+        const ev = { id: data.id || uid("s"), time: data.time || "12:00 PM", title: data.title || "New Event", cat: data.cat || "work", sub: data.sub || "" };
+        OS.schedule.push(ev);
+        sortSchedule();
+        setTimeout(() => flashItem(".sched-event", ev.title), 200);
+      } else if (type === "edit") {
+        const e = OS.schedule.find(x => x.id === data.id || x.title.toLowerCase().includes((data.id||"").toLowerCase()));
+        if (e) Object.assign(e, data);
+        sortSchedule();
+      } else if (type === "delete") {
+        const idx = OS.schedule.findIndex(x => x.id === data.id || x.title.toLowerCase().includes((data.match||"").toLowerCase()));
+        if (idx > -1) OS.schedule.splice(idx, 1);
+      }
+      break;
+
+    case "task":
+      if (type === "add") {
+        const t = { id: data.id || uid("t"), title: data.title || "New Task", cat: data.cat||"work", pri: data.pri||data.priority||"med", due: data.due||"", pay: data.pay||"", done: data.done||false, why: data.why||"" };
+        OS.tasks.unshift(t);
+        setTimeout(() => flashNewTask(), 200);
+      } else if (type === "edit") {
+        const t = findFuzzy(OS.tasks, data.id || data.match || "");
+        if (t) { Object.assign(t, data); if (data.done !== undefined) t.done = data.done; }
+      } else if (type === "delete") {
+        const idx = OS.tasks.findIndex(x => x.id === data.id || x.title.toLowerCase().includes((data.match||"").toLowerCase()));
+        if (idx > -1) OS.tasks.splice(idx, 1);
+      }
+      break;
+
+    case "habit":
+      if (type === "add") {
+        OS.habits.push({ id: data.id || uid("h"), name: data.name || "New Habit", days: data.days || [0,0,0,0,0,0,0] });
+      } else if (type === "edit") {
+        const h = OS.habits.find(x => x.id === data.id || x.name.toLowerCase().includes((data.match||"").toLowerCase()));
+        if (h) {
+          if (data.days) h.days = data.days;
+          if (data.checkToday) h.days[0] = 1;
+          if (data.name) h.name = data.name;
+        }
+      } else if (type === "delete") {
+        const idx = OS.habits.findIndex(x => x.id === data.id || x.name.toLowerCase().includes((data.match||"").toLowerCase()));
+        if (idx > -1) OS.habits.splice(idx, 1);
+      }
+      break;
+
+    case "goal":
+      if (type === "add") {
+        const colors = ["var(--accent)","var(--gold)","var(--green)","var(--orange)","var(--blue)","var(--pink)"];
+        OS.goals.push({ id: data.id || uid("g"), title: data.title||"New Goal", cat: data.cat||"work", pct: data.pct||0, color: data.color||colors[OS.goals.length%colors.length], milestones: data.milestones||[] });
+      } else if (type === "edit") {
+        const g = OS.goals.find(x => x.id === data.id || x.title.toLowerCase().includes((data.match||"").toLowerCase()));
+        if (g) { if (data.pct !== undefined) g.pct = data.pct; if (data.title) g.title = data.title; if (data.milestones) g.milestones = data.milestones; }
+      } else if (type === "delete") {
+        const idx = OS.goals.findIndex(x => x.id === data.id || x.title.toLowerCase().includes((data.match||"").toLowerCase()));
+        if (idx > -1) OS.goals.splice(idx, 1);
+      }
+      break;
+
+    case "pipeline":
+      if (type === "add") {
+        const colors = ["var(--accent)","var(--gold)","var(--green)","var(--orange)","var(--blue)"];
+        OS.pipeline.push({ id: data.id || uid("p"), name: data.name||"New Deal", value: data.value||"$0", stage: data.stage||"Lead", color: data.color||colors[OS.pipeline.length%colors.length], notes: data.notes||"" });
+      } else if (type === "edit") {
+        const p = OS.pipeline.find(x => x.id === data.id || x.name.toLowerCase().includes((data.match||"").toLowerCase()));
+        if (p) Object.assign(p, data);
+      } else if (type === "delete") {
+        const idx = OS.pipeline.findIndex(x => x.id === data.id || x.name.toLowerCase().includes((data.match||"").toLowerCase()));
+        if (idx > -1) OS.pipeline.splice(idx, 1);
+      }
+      break;
+
+    case "note":
+      if (type === "add") {
+        OS.notes.unshift({ id: data.id || uid("n"), body: data.body||"", tag: data.tag||"general" });
+      } else if (type === "edit") {
+        const n = OS.notes.find(x => x.id === data.id);
+        if (n) Object.assign(n, data);
+      } else if (type === "delete") {
+        const idx = OS.notes.findIndex(x => x.id === data.id || x.body.toLowerCase().includes((data.match||"").toLowerCase()));
+        if (idx > -1) OS.notes.splice(idx, 1);
+      }
+      break;
+
+    case "meta":
+      if (data && data.key) OS.meta[data.key] = data.value;
+      break;
+  }
+  return op.confirm;
+}
+
+// ═══════════════════════════════════════════════════
+// AI SEND
+// ═══════════════════════════════════════════════════
+function buildSystem() {
+  const state = {
+    earnings: OS.earnings,
+    habits: OS.habits.map(h => ({ name: h.name, todayDone: !!h.days[0], streak: h.days.filter(Boolean).length })),
+    tasks: OS.tasks.map(t => ({ id: t.id, title: t.title, cat: t.cat, priority: t.pri, due: t.due, pay: t.pay, done: t.done, why: t.why })),
+    schedule: OS.schedule.map(s => ({ id: s.id, time: s.time, title: s.title, cat: s.cat })),
+    goals: OS.goals.map(g => ({ id: g.id, title: g.title, pct: g.pct, cat: g.cat })),
+    pipeline: OS.pipeline.map(p => ({ id: p.id, name: p.name, value: p.value, stage: p.stage, notes: p.notes })),
+    notes: OS.notes.map(n => ({ id: n.id, body: n.body.slice(0,80), tag: n.tag })),
+    sessionActions: OS.meta.axisActionCount,
+  };
+  return `You are AXIS — Jordan's fully integrated personal OS assistant. You have complete live read/write access to Jordan's entire command center. You are not just a chatbot. You are an operator.
+
+JORDAN'S CONTEXT:
+- Builder in Farmington, Utah
+- Products: APEX/SOS.AI (AI voice training for life insurance & MP agents), THRIVE by OSOS (white-label training platform for agency owners)
+- Partner: Simir (mortgage protection space)
+- Working style: direct, iterative, operator mindset — "for the call, not the classroom"
+
+YOUR CAPABILITIES (via update_os tool):
+- Add/edit/delete ANYTHING: schedule events, tasks, habits, goals, pipeline deals, notes
+- Log and update earnings in real time
+- Create entirely new habits, pipeline deals, or goal categories
+- Reorganize, rename, restructure anything Jordan asks
+- Answer any question using live state + your knowledge
+- Give tactical advice, accountability, coaching, strategy
+
+LIVE STATE SNAPSHOT:
+${JSON.stringify(state, null, 2)}
+
+RULES:
+- ALWAYS use the update_os tool when any action is implied — even subtle ones
+- You can chain multiple operations in one call (e.g. log income + complete task + update goal all at once)
+- Be direct, tactical, honest. Call out what Jordan is avoiding. Push toward action.
+- Keep responses punchy — no filler. Lead with what you did, then insight.
+- If nothing to modify, just set operations:[] and give your response.`;
+}
+
+async function sendMsg() {
+  const input = document.getElementById('ai-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = ''; input.style.height = 'auto';
+
+  addMsg('user', text);
+  OS.messages.push({ role: 'user', content: text });
+
+  const btn = document.getElementById('send-btn');
+  btn.disabled = true;
+  setStatus('Thinking...');
+  showTyping();
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1500,
+        system: buildSystem(),
+        tools: TOOLS,
+        tool_choice: { type: "auto" },
+        messages: OS.messages,
+      })
+    });
+    const data = await res.json();
+    hideTyping();
+
+    let replyText = '';
+    let pills = [];
+    let toolUseBlock = null;
+
+    for (const block of (data.content || [])) {
+      if (block.type === 'text') replyText += block.text;
+      if (block.type === 'tool_use') toolUseBlock = block;
+    }
+
+    if (toolUseBlock) {
+      const input = toolUseBlock.input;
+      const ops = input.operations || [];
+      replyText = input.response || replyText;
+
+      // Execute all operations
+      const results = execOps(ops);
+      OS.meta.axisActionCount += ops.filter(o => o.type !== 'message').length;
+
+      // Log each action
+      results.forEach(r => {
+        if (r.ok && r.op.type !== 'message') {
+          logAction(r.op.type, r.op.target, r.op.confirm);
+          pills.push(r.op.confirm);
+          showToast(getEmoji(r.op.target), r.op.confirm);
+        }
+      });
+
+      // Send tool result back
+      OS.messages.push({ role: 'assistant', content: data.content });
+      OS.messages.push({ role: 'user', content: [{ type: 'tool_result', tool_use_id: toolUseBlock.id, content: JSON.stringify(results.map(r=>r.result)) }] });
+
+      if (data.stop_reason === 'tool_use') {
+        showTyping();
+        const res2 = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 800, system: buildSystem(), tools: TOOLS, messages: OS.messages })
+        });
+        const d2 = await res2.json();
+        hideTyping();
+        const finalText = d2.content?.filter(b => b.type === 'text').map(b => b.text).join('');
+        if (finalText) replyText = finalText;
+        OS.messages.push({ role: 'assistant', content: d2.content });
+      }
+    } else {
+      OS.messages.push({ role: 'assistant', content: data.content });
+    }
+
+    if (replyText) {
+      const msgEl = addMsg('ai', replyText, true);
+      if (pills.length) {
+        setTimeout(() => {
+          const wrap = document.createElement('div');
+          wrap.className = 'actions-done';
+          pills.forEach(p => {
+            const pill = document.createElement('div');
+            pill.className = 'action-pill pill-ok';
+            pill.textContent = p;
+            wrap.appendChild(pill);
+          });
+          msgEl.querySelector('.bubble')?.appendChild(wrap);
+          document.getElementById('ai-msgs').scrollTop = 99999;
+        }, 300);
+      }
+    }
+
+    // Keep history lean
+    if (OS.messages.length > 24) OS.messages = OS.messages.slice(-16);
+    document.getElementById('action-count').textContent = `${OS.meta.axisActionCount} actions taken this session`;
+  } catch (err) {
+    hideTyping();
+    addMsg('ai', 'Connection issue — try again.', true);
+    console.error(err);
+  }
+
+  btn.disabled = false;
+  setStatus('Online · Full access');
+}
+
+// ═══════════════════════════════════════════════════
+// RENDER FUNCTIONS
+// ═══════════════════════════════════════════════════
+function renderAll() {
+  renderSchedule(); renderTasks(); renderGoals();
+  renderPipeline(); renderNotes(); renderHabits();
+  renderWeekly(); updateStats();
+}
+
+function renderSchedule() {
+  const g = document.getElementById('sched-grid'); g.innerHTML = '';
+  const now = new Date(), nh = now.getHours(), nm = now.getMinutes();
+  const tagMap = { work:'tag-work', health:'tag-health', money:'tag-money', personal:'tag-personal' };
+  OS.schedule.forEach((ev, i) => {
+    const [tp, ap] = ev.time.split(' '); const [hh, mm] = tp.split(':').map(Number);
+    const h24 = (ap==='PM'&&hh!==12)?hh+12:(ap==='AM'&&hh===12?0:hh);
+    const next = OS.schedule[i+1]; let nh24 = 25;
+    if (next) { const[t2,a2]=next.time.split(' ');const[h2]=t2.split(':').map(Number);nh24=(a2==='PM'&&h2!==12)?h2+12:(a2==='AM'&&h2===12?0:h2); }
+    const cur = h24<=nh&&nh<nh24;
+    const row = document.createElement('div'); row.className = 'sched-row';
+    row.innerHTML = `<div class="sched-time">${ev.time}</div>
+      <div class="sched-event ${ev.cat}${cur?' current':''}">
+        <div class="ev-title">${ev.title}</div>
+        ${ev.sub?`<div class="ev-sub">${ev.sub}</div>`:''}
+        <span class="ev-tag ${tagMap[ev.cat]||'tag-work'}">${ev.cat}</span>
+      </div>`;
+    g.appendChild(row);
+  });
+}
+
+function renderTasks() {
+  const list = document.getElementById('task-list'); list.innerHTML = '';
+  const cc = {work:'tag-work',money:'tag-money',health:'tag-health',personal:'tag-personal'};
+  const cn = {work:'💼 Work',money:'💰 Income',health:'💪 Health',personal:'🧠 Personal'};
+  [
+    { label:'🔴 HIGH PRIORITY', items: OS.tasks.filter(t=>t.pri==='high'&&!t.done) },
+    { label:'🟡 MEDIUM PRIORITY', items: OS.tasks.filter(t=>t.pri==='med'&&!t.done) },
+    { label:'🟢 LOW / PERSONAL', items: OS.tasks.filter(t=>t.pri==='low'&&!t.done) },
+    { label:'✅ COMPLETED', items: OS.tasks.filter(t=>t.done) },
+  ].forEach(sec => {
+    if (!sec.items.length) return;
+    const s = document.createElement('div'); s.className = 'pri-section';
+    s.innerHTML = `<div class="pri-label">${sec.label}</div>`;
+    sec.items.forEach(t => {
+      const el = document.createElement('div');
+      el.className = `task-card${t.done?' done':''}`;
+      el.innerHTML = `<div class="chk">${t.done?'✓':''}</div>
+        <div class="task-info">
+          <div class="task-title">${t.title}</div>
+          <div class="task-chips">
+            <span class="chip ${cc[t.cat]||'tag-work'}">${cn[t.cat]||t.cat}</span>
+            ${t.due?`<span class="task-due">Due ${t.due}</span>`:''}
+            ${t.pay?`<span class="task-pay">${t.pay}</span>`:''}
+          </div>
+          ${t.why?`<div class="task-why">→ ${t.why}</div>`:''}
+        </div>`;
+      el.onclick = () => { t.done = !t.done; renderTasks(); updateStats(); showToast(t.done?'✅':'↩️', t.done?'Done!':'Reopened'); };
+      s.appendChild(el);
+    });
+    list.appendChild(s);
+  });
+}
+
+function renderGoals() {
+  const list = document.getElementById('goal-list'); list.innerHTML = '';
+  OS.goals.forEach(g => {
+    const el = document.createElement('div'); el.className = 'goal-card';
+    const mils = g.milestones.map((m,i) => {
+      const done = i < Math.floor(g.milestones.length * g.pct / 100);
+      return `<div class="ms${done?' done':''}"><div class="ms-dot"></div>${m}</div>`;
+    }).join('');
+    el.innerHTML = `<div class="goal-top">
+      <div class="goal-name">${g.title}</div>
+      <div class="goal-meta"><span class="goal-pct" style="color:${g.color}">${g.pct}%</span></div>
+    </div>
+    <div class="goal-bar-wrap"><div class="goal-bar-track"><div class="goal-bar-fill" style="width:${g.pct}%;background:${g.color}"></div></div></div>
+    <div class="milestones">${mils}</div>`;
+    list.appendChild(el);
+  });
+}
+
+function renderPipeline() {
+  const list = document.getElementById('pipeline-list'); list.innerHTML = '';
+  const stageOrder = { 'Lead':0,'Contacted':1,'Proposal':2,'Negotiation':3,'Closed':4 };
+  const sorted = [...OS.pipeline].sort((a,b)=>(stageOrder[b.stage]||0)-(stageOrder[a.stage]||0));
+  sorted.forEach(p => {
+    const el = document.createElement('div');
+    el.style.cssText = `background:var(--panel);border:1px solid var(--border);border-left:3px solid ${p.color};border-radius:10px;padding:12px 14px;margin-bottom:7px;cursor:pointer;transition:all .15s;`;
+    el.innerHTML = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+      <div style="font-size:13px;font-weight:500;color:var(--text)">${p.name}</div>
+      <div style="font-family:var(--mono);font-size:13px;color:var(--gold);font-weight:500">${p.value}</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <span style="font-size:9px;font-weight:600;letter-spacing:1px;text-transform:uppercase;padding:2px 8px;border-radius:4px;background:rgba(255,255,255,.06);color:var(--text3)">${p.stage}</span>
+      ${p.notes?`<span style="font-size:11px;color:var(--text3);font-style:italic">${p.notes}</span>`:''}
+    </div>`;
+    list.appendChild(el);
+  });
+  // Total pipeline value
+  const totalEl = document.createElement('div');
+  totalEl.style.cssText='font-size:11px;color:var(--text3);text-align:right;margin-top:10px;font-family:var(--mono);';
+  const total = OS.pipeline.reduce((sum,p)=>{const n=parseFloat(p.value.replace(/[^0-9.]/g,''))||0;return sum+n;},0);
+  totalEl.textContent = `Pipeline total: $${total.toLocaleString()}`;
+  list.appendChild(totalEl);
+  document.getElementById('stat-pipe').textContent = `$${total.toLocaleString()}`;
+}
+
+function renderNotes() {
+  const list = document.getElementById('notes-list'); list.innerHTML = '';
+  const tagColors = {'follow-up':'var(--blue)','idea':'var(--gold)','reminder':'var(--red)','general':'var(--text3)'};
+  const tagEmoji = {'follow-up':'📞','idea':'💡','reminder':'⏰','general':'📌'};
+  OS.notes.forEach(n => {
+    const el = document.createElement('div');
+    el.style.cssText=`background:var(--panel);border:1px solid var(--border);border-left:3px solid ${tagColors[n.tag]||'var(--text3)'};border-radius:10px;padding:12px 14px;margin-bottom:7px;font-size:13px;color:var(--text);line-height:1.5;`;
+    el.innerHTML=`<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px"><div>${n.body}</div><span style="font-size:11px;color:${tagColors[n.tag]||'var(--text3)'};flex-shrink:0;margin-top:1px">${tagEmoji[n.tag]||'📌'} ${n.tag}</span></div>`;
+    list.appendChild(el);
+  });
+  // Notes sidebar preview
+  const preview = document.getElementById('notes-preview'); preview.innerHTML='';
+  OS.notes.slice(0,3).forEach(n=>{
+    const el=document.createElement('div');el.className='note-item';
+    el.textContent=n.body.slice(0,55)+(n.body.length>55?'…':'');
+    preview.appendChild(el);
+  });
+}
+
+function renderHabits() {
+  const rows = document.getElementById('habit-rows'); rows.innerHTML='';
+  OS.habits.forEach((h, hi) => {
+    const row = document.createElement('div'); row.className='habit-row';
+    const dots = h.days.slice(0,7).map((d,di)=>
+      `<div class="h-dot${d?' on':''}" onclick="toggleHabit(${hi},${di})"></div>`
+    ).join('');
+    row.innerHTML=`<div class="habit-name">${h.name}</div><div class="h-dots">${dots}</div>`;
+    rows.appendChild(row);
+  });
+}
+
+function renderWeekly() {
+  const g = document.getElementById('week-wrap'); g.innerHTML='';
+  const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],dates=[21,22,23,24,25,26,27];
+  const wev={0:[{t:'5AM',ti:'Gym',c:'wev-health'},{t:'8AM',ti:'APEX Build',c:'wev-work'},{t:'10AM',ti:'Lead Calls',c:'wev-money'},{t:'1PM',ti:'Simir Call',c:'wev-work'}],1:[{t:'5AM',ti:'Run',c:'wev-health'},{t:'8AM',ti:'SOS.AI Video',c:'wev-work'},{t:'2PM',ti:'Invoice',c:'wev-money'}],2:[{t:'6AM',ti:'Gym',c:'wev-health'},{t:'9AM',ti:'THRIVE',c:'wev-work'},{t:'11AM',ti:'GHL Setup',c:'wev-money'}],3:[{t:'8AM',ti:'Deep Work',c:'wev-work'},{t:'1PM',ti:'Content',c:'wev-work'},{t:'3PM',ti:'Lead Follow',c:'wev-money'}],4:[{t:'5AM',ti:'Run',c:'wev-health'},{t:'9AM',ti:'APEX Polish',c:'wev-work'},{t:'2PM',ti:'Admin',c:'wev-money'}],5:[{t:'7AM',ti:'Gym',c:'wev-health'},{t:'10AM',ti:'Review',c:'wev-work'}],6:[{t:'8AM',ti:'Recharge',c:'wev-health'},{t:'11AM',ti:'Plan Week',c:'wev-work'}]};
+  const hrs=['5AM','6AM','7AM','8AM','9AM','10AM','11AM','12PM','1PM','2PM','3PM','4PM','5PM'];
+  const corner=document.createElement('div');corner.className='wk-corner';g.appendChild(corner);
+  days.forEach((d,i)=>{const h=document.createElement('div');h.className='wk-head';h.innerHTML=`<div class="wk-day-name">${d}</div><div class="wk-day-num${i===0?' today':''}">${dates[i]}</div>`;g.appendChild(h);});
+  hrs.forEach(hr=>{
+    const tl=document.createElement('div');tl.className='wk-time';tl.textContent=hr;g.appendChild(tl);
+    days.forEach((_,di)=>{
+      const cell=document.createElement('div');cell.className='wk-cell';
+      (wev[di]||[]).filter(e=>e.t===hr).forEach(e=>{const ev=document.createElement('div');ev.className=`wk-ev ${e.c}`;ev.textContent=e.ti;cell.appendChild(ev);});
+      g.appendChild(cell);
+    });
+  });
+}
+
+function updateStats() {
+  const earn = OS.earnings;
+  const pct = Math.round(earn.current/earn.goal*100);
+  document.getElementById('earn-display').textContent = `$${earn.current.toLocaleString()}`;
+  document.getElementById('earn-sub').textContent = `of $${earn.goal.toLocaleString()} goal`;
+  document.getElementById('earn-pct-label').textContent = `${pct}%`;
+  document.getElementById('earn-bar').style.width = Math.min(pct,100)+'%';
+  document.getElementById('top-earn').textContent = `$${earn.current.toLocaleString()}`;
+
+  const pending = OS.tasks.filter(t=>!t.done).length;
+  const done = OS.tasks.filter(t=>t.done).length;
+  document.getElementById('top-tasks').textContent = pending;
+  document.getElementById('nb-tasks').textContent = OS.tasks.filter(t=>!t.done&&t.pri==='high').length;
+  document.getElementById('stat-tasks').textContent = `${done}/${OS.tasks.length}`;
+
+  const hDone = OS.habits.filter(h=>h.days[0]).length;
+  document.getElementById('stat-habits').textContent = `${hDone}/${OS.habits.length}`;
+  const sbHab = document.getElementById('sb-widgets').querySelector('#stat-habits');
+
+  document.getElementById('nb-pipe').textContent = OS.pipeline.length;
+  document.getElementById('stat-actions').textContent = OS.meta.axisActionCount;
+
+  // Sidebar habits count
+  const sideHabitVal = document.querySelector('#stat-habits');
+  if(sideHabitVal) sideHabitVal.textContent = `${hDone}/${OS.habits.length}`;
+}
+
+// ═══════════════════════════════════════════════════
+// UTILITIES
+// ═══════════════════════════════════════════════════
+function uid(prefix) { return prefix + (++OS.nextId); }
+function findFuzzy(arr, q) { return arr.find(x => x.id===q || (x.title||x.name||x.body||'').toLowerCase().includes(q.toLowerCase())); }
+function sortSchedule() {
+  const toMins = t => {
+    const [tp,ap] = t.split(' ');
+    let [h,m] = tp.split(':').map(Number);
+    if(ap==='PM'&&h!==12) h+=12; if(ap==='AM'&&h===12) h=0;
+    return h*60+m;
+  };
+  OS.schedule.sort((a,b)=>toMins(a.time)-toMins(b.time));
+}
+function flashItem(selector, titleMatch) {
+  document.querySelectorAll(selector).forEach(el => {
+    if(el.querySelector('.ev-title')?.textContent===titleMatch) {
+      el.classList.add('new-item'); setTimeout(()=>el.classList.remove('new-item'),2000);
+    }
+  });
+}
+function flashNewTask() {
+  const els = document.querySelectorAll('.task-card');
+  if(els[0]) { els[0].classList.add('new-item'); setTimeout(()=>els[0].classList.remove('new-item'),2000); }
+}
+function getEmoji(target) { return {schedule:'📅',task:'✅',habit:'💪',goal:'🎯',pipeline:'💼',note:'📝',earnings:'💰',meta:'⚙️'}[target]||'✦'; }
+
+// Clock
+function updateClock(){
+  const n=new Date(),h=n.getHours(),m=n.getMinutes(),ap=h>=12?'PM':'AM',hh=h%12||12;
+  document.getElementById('clock').textContent=`${hh}:${String(m).padStart(2,'0')} ${ap}`;
+  const D=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],M=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  document.getElementById('today-label').textContent=`${D[n.getDay()]} ${M[n.getMonth()]} ${n.getDate()}`;
+}
+setInterval(updateClock,1000); updateClock();
+
+// Tabs
+function switchTab(name, navEl) {
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
+  if(navEl) navEl.classList.add('active');
+}
+
+// Habit toggle
+function toggleHabit(hi,di){ OS.habits[hi].days[di]=OS.habits[hi].days[di]?0:1; renderHabits(); updateStats(); }
+
+// AI UI helpers
+function addMsg(role, text, animate=false) {
+  const msgs=document.getElementById('ai-msgs');
+  const div=document.createElement('div'); div.className=`msg ${role}`;
+  const now=new Date();
+  const t=`${now.getHours()%12||12}:${String(now.getMinutes()).padStart(2,'0')} ${now.getHours()>=12?'PM':'AM'}`;
+  const bubble=document.createElement('div'); bubble.className='bubble';
+  if(animate&&role==='ai'){
+    bubble.textContent=''; div.appendChild(bubble);
+    div.innerHTML+=`<div class="msg-time">${t}</div>`;
+    msgs.appendChild(div); msgs.scrollTop=99999;
+    let i=0; const iv=setInterval(()=>{ bubble.textContent+=text[i]; i++; msgs.scrollTop=99999; if(i>=text.length)clearInterval(iv); },10);
+  } else {
+    bubble.textContent=text; div.appendChild(bubble);
+    div.innerHTML+=`<div class="msg-time">${t}</div>`;
+    msgs.appendChild(div); msgs.scrollTop=99999;
+  }
+  return div;
+}
+function showTyping(){
+  const msgs=document.getElementById('ai-msgs');
+  const t=document.createElement('div'); t.id='typing'; t.className='msg ai';
+  t.innerHTML=`<div class="typing-wrap"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
+  msgs.appendChild(t); msgs.scrollTop=99999;
+}
+function hideTyping(){ const t=document.getElementById('typing'); if(t)t.remove(); }
+function setStatus(s){ document.getElementById('ai-status').textContent=s; }
+function q(msg){ document.getElementById('ai-input').value=msg; sendMsg(); }
+function handleKey(e){ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();} }
+function autoResize(el){ el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,110)+'px'; }
+
+// Log
+function logAction(type,target,confirm){
+  const log=document.getElementById('changelog');
+  const now=new Date();
+  const t=`${now.getHours()%12||12}:${String(now.getMinutes()).padStart(2,'0')}${now.getHours()>=12?'p':'a'}`;
+  const item=document.createElement('div'); item.className='log-item';
+  item.innerHTML=`<span class="log-time">${t}</span><span class="log-action">${type} ${target}</span><span class="log-detail">${confirm}</span>`;
+  log.prepend(item);
+}
+function toggleLog(){
+  const w=document.getElementById('changelog-wrap');
+  const t=document.getElementById('log-toggle');
+  w.classList.toggle('open');
+  t.textContent=w.classList.contains('open')?'▴ Hide action log':'▾ Show action log';
+}
+
+// Toast
+function showToast(icon,msg){
+  document.getElementById('toast-icon').textContent=icon;
+  document.getElementById('toast-msg').textContent=msg;
+  const t=document.getElementById('toast'); t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3500);
+}
+
+// Manual adds
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+function addEventManual(){
+  const time=document.getElementById('ev-time').value.trim();
+  const title=document.getElementById('ev-title').value.trim();
+  if(!title) return;
+  execOp({type:'add',target:'schedule',data:{time,title,cat:document.getElementById('ev-cat').value,sub:document.getElementById('ev-sub').value},confirm:`Added "${title}"`});
+  renderAll(); closeModal('modal-event');
+  document.getElementById('ev-time').value=''; document.getElementById('ev-title').value=''; document.getElementById('ev-sub').value='';
+}
+function addTaskManual(){
+  const title=document.getElementById('tk-title').value.trim(); if(!title)return;
+  execOp({type:'add',target:'task',data:{title,cat:document.getElementById('tk-cat').value,pri:document.getElementById('tk-pri').value,due:document.getElementById('tk-due').value,pay:document.getElementById('tk-pay').value,why:document.getElementById('tk-why').value},confirm:`Added "${title}"`});
+  renderAll(); closeModal('modal-task');
+  ['tk-title','tk-due','tk-pay','tk-why'].forEach(id=>document.getElementById(id).value='');
+}
+function addGoalManual(){
+  const title=document.getElementById('gl-title').value.trim(); if(!title)return;
+  execOp({type:'add',target:'goal',data:{title,cat:document.getElementById('gl-cat').value,pct:parseInt(document.getElementById('gl-pct').value)||0,milestones:document.getElementById('gl-ms').value.split(',').map(s=>s.trim()).filter(Boolean)},confirm:`Added goal "${title}"`});
+  renderAll(); closeModal('modal-goal');
+  ['gl-title','gl-pct','gl-ms'].forEach(id=>document.getElementById(id).value='');
+}
+function addPipeManual(){
+  const name=document.getElementById('pp-name').value.trim(); if(!name)return;
+  execOp({type:'add',target:'pipeline',data:{name,value:document.getElementById('pp-val').value,stage:document.getElementById('pp-stage').value,notes:document.getElementById('pp-notes').value},confirm:`Added "${name}" to pipeline`});
+  renderAll(); closeModal('modal-pipe');
+  ['pp-name','pp-val','pp-notes'].forEach(id=>document.getElementById(id).value='');
+}
+function addNoteManual(){
+  const body=document.getElementById('nt-body').value.trim(); if(!body)return;
+  execOp({type:'add',target:'note',data:{body,tag:document.getElementById('nt-tag').value},confirm:`Note added`});
+  renderAll(); closeModal('modal-note');
+  document.getElementById('nt-body').value='';
+}
+
+// ═══════════════════════════════════════════════════
+// SUPABASE PERSISTENCE
+// ═══════════════════════════════════════════════════
+const SB_URL = 'https://qoygqlqklzqrqnqdnonj.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFveWdxbHFrbHpxcnFucWRub25qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxMjUzNTAsImV4cCI6MjA4OTcwMTM1MH0.qaLiXmZMZCgxxWOl7Fmmco3RMF0Fj4muDTSIoduSxNI';
+const SB_HEADERS = { 'Content-Type': 'application/json', 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` };
+const DB_ROW = 'main';
+
+let saveTimer = null;
+let isSaving = false;
+let isOnline = true;
+let pendingSave = false;
+
+// Save indicator UI
+function setSaveStatus(status) {
+  const el = document.getElementById('save-status');
+  if (!el) return;
+  const states = {
+    saving:  { text: '⟳ Saving…',  color: 'var(--text3)' },
+    saved:   { text: '✓ Saved',     color: 'var(--green)' },
+    offline: { text: '⚡ Offline',  color: 'var(--gold)'  },
+    error:   { text: '✕ Error',     color: 'var(--red)'   },
+    loading: { text: '⟳ Loading…', color: 'var(--text3)' },
+  };
+  const s = states[status] || states.saved;
+  el.textContent = s.text;
+  el.style.color = s.color;
+}
+
+// Debounced auto-save — fires 1.2s after last change
+function scheduleSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveToSupabase, 1200);
+}
+
+async function saveToSupabase() {
+  if (isSaving) { pendingSave = true; return; }
+  isSaving = true;
+  setSaveStatus('saving');
+  try {
+    // Strip AI message history from saved state (keep it lean)
+    const toSave = { ...OS };
+    toSave.messages = [];
+    const body = JSON.stringify({ id: DB_ROW, state: toSave, updated_at: new Date().toISOString() });
+    const res = await fetch(`${SB_URL}/rest/v1/jordanos_state?on_conflict=id`, {
+      method: 'POST',
+      headers: { ...SB_HEADERS, 'Prefer': 'resolution=merge-duplicates' },
+      body,
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    isOnline = true;
+    setSaveStatus('saved');
+    setTimeout(() => { if (document.getElementById('save-status')?.textContent === '✓ Saved') setSaveStatus('saved'); }, 2000);
+  } catch(e) {
+    console.warn('Save failed:', e);
+    isOnline = false;
+    setSaveStatus('error');
+    // Retry in 10s
+    setTimeout(saveToSupabase, 10000);
+  } finally {
+    isSaving = false;
+    if (pendingSave) { pendingSave = false; scheduleSave(); }
+  }
+}
+
+async function loadFromSupabase() {
+  setSaveStatus('loading');
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/jordanos_state?id=eq.${DB_ROW}&select=state`, {
+      headers: SB_HEADERS,
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const rows = await res.json();
+    if (rows.length && rows[0].state) {
+      const saved = rows[0].state;
+      // Merge saved state into OS — preserving structure for any new keys added in code
+      const mergeKeys = ['earnings','habits','tasks','schedule','goals','pipeline','notes','meta'];
+      mergeKeys.forEach(k => { if (saved[k] !== undefined) OS[k] = saved[k]; });
+      if (saved.nextId) OS.nextId = saved.nextId;
+      isOnline = true;
+      setSaveStatus('saved');
+      return true;
+    }
+    // No saved data yet — first run, save defaults
+    setSaveStatus('saved');
+    await saveToSupabase();
+    return false;
+  } catch(e) {
+    console.warn('Load failed:', e.message);
+    isOnline = false;
+    setSaveStatus('offline');
+    return false;
+  }
+}
+
+// Patch renderAll to auto-save on every change
+const _renderAll = renderAll;
+window.renderAll = function() {
+  _renderAll();
+  scheduleSave();
+};
+
+// Patch toggleHabit too
+const _toggleHabit = toggleHabit;
+window.toggleHabit = function(hi, di) {
+  _toggleHabit(hi, di);
+  scheduleSave();
+};
+
+// Online/offline detection
+window.addEventListener('online',  () => { isOnline = true;  setSaveStatus('saved'); saveToSupabase(); });
+window.addEventListener('offline', () => { isOnline = false; setSaveStatus('offline'); });
+
+// ═══════════════════════════════════════════════════
+// INIT — load from Supabase first, then render
+// ═══════════════════════════════════════════════════
+(async () => {
+  // Show loading state
+  document.getElementById('ai-msgs').innerHTML = `
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:10px;opacity:0.5">
+      <div style="font-size:22px">⟳</div>
+      <div style="font-size:12px;color:var(--text2);font-family:var(--mono)">Loading your OS from Supabase…</div>
+    </div>`;
+
+  const hadSavedData = await loadFromSupabase();
+  renderAll();
+
+  const h = new Date().getHours();
+  const greet = h<12?'Morning':h<17?'Afternoon':'Evening';
+  const msg = hadSavedData
+    ? `${greet}, Jordan. Loaded your OS from Supabase — everything's exactly where you left it. Auto-save is live; every change syncs instantly.\n\nWhat do you want to do?`
+    : `${greet}, Jordan. JordanOS v2 is live and wired to Supabase. Your state will now persist across every session, every device.\n\nI have full read/write access to your entire OS. Just talk to me naturally — I'll handle the rest.\n\nWhat do you want to build first?`;
+
+  addMsg('ai', msg, true);
+  OS.messages.push({ role: 'assistant', content: msg });
+})();
+</script>
+</body>
+</html>
