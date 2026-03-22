@@ -418,6 +418,13 @@ html,body { height:100%; background:var(--bg); color:var(--text); font-family:va
       </div>
     </div>
 
+    <div id="key-prompt" style="display:none;padding:14px;background:var(--panel2);border:1px solid var(--border2);border-radius:10px;margin:10px 0;">
+      <div style="font-size:12px;color:var(--text2);margin-bottom:8px;">Enter your Anthropic API key to activate AXIS</div>
+      <div style="display:flex;gap:8px;">
+        <input id="key-input" type="password" placeholder="sk-ant-api03-..." style="flex:1;background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:7px 10px;color:var(--text);font-size:13px;outline:none;" />
+        <button onclick="saveKey()" style="background:var(--accent);color:#fff;border:none;border-radius:7px;padding:7px 14px;font-size:13px;cursor:pointer;">Save</button>
+      </div>
+    </div>
     <div class="ai-msgs" id="ai-msgs"></div>
 
     <div class="changelog-wrap" id="changelog-wrap">
@@ -528,6 +535,25 @@ html,body { height:100%; background:var(--bg); color:var(--text); font-family:va
 <div class="toast" id="toast"><span id="toast-icon">✅</span><span id="toast-msg"></span></div>
 
 <script>
+let AXIS_KEY = localStorage.getItem('axis_api_key') || '';
+
+function saveKey() {
+  const k = document.getElementById('key-input').value.trim();
+  if (!k) return;
+  localStorage.setItem('axis_api_key', k);
+  AXIS_KEY = k;
+  document.getElementById('key-prompt').style.display = 'none';
+  document.getElementById('ai-status').textContent = 'Online · Full access';
+  addMsg('ai', 'API key saved. Ready.');
+}
+
+function checkKey() {
+  if (!AXIS_KEY) {
+    document.getElementById('key-prompt').style.display = 'block';
+    document.getElementById('ai-status').textContent = 'Needs API key';
+  }
+}
+
 // ═══════════════════════════════════════════════════
 // STATE — single source of truth, fully modular
 // AXIS can read and write all of this
@@ -808,6 +834,7 @@ RULES:
 }
 
 async function sendMsg() {
+  if (!AXIS_KEY) { document.getElementById('key-prompt').style.display = 'block'; return; }
   const input = document.getElementById('ai-input');
   const text = input.value.trim();
   if (!text) return;
@@ -824,7 +851,7 @@ async function sendMsg() {
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'x-api-key': AXIS_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 1500,
@@ -872,7 +899,7 @@ async function sendMsg() {
         showTyping();
         const res2 = await fetch('https://api.anthropic.com/v1/messages', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'x-api-key': AXIS_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
           body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 800, system: buildSystem(), tools: TOOLS, messages: OS.messages })
         });
         const d2 = await res2.json();
@@ -1373,6 +1400,7 @@ window.addEventListener('offline', () => { isOnline = false; setSaveStatus('offl
 
   addMsg('ai', msg, true);
   OS.messages.push({ role: 'assistant', content: msg });
+  checkKey();
 })();
 </script>
 </body>
