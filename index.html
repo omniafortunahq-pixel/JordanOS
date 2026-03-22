@@ -864,6 +864,15 @@ async function sendMsg() {
     const data = await res.json();
     hideTyping();
 
+    if (!res.ok) {
+      console.error('API error:', data);
+      addMsg('ai', `Error ${res.status}: ${data.error?.message || JSON.stringify(data)}`, true);
+      OS.messages.pop(); // remove failed user message
+      btn.disabled = false;
+      setStatus('Online · Full access');
+      return;
+    }
+
     let replyText = '';
     let pills = [];
     let toolUseBlock = null;
