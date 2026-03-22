@@ -1408,7 +1408,6 @@ window.addEventListener('offline', () => { isOnline = false; setSaveStatus('offl
     : `${greet}, Jordan. JordanOS v2 is live and wired to Supabase. Your state will now persist across every session, every device.\n\nI have full read/write access to your entire OS. Just talk to me naturally — I'll handle the rest.\n\nWhat do you want to build first?`;
 
   addMsg('ai', msg, true);
-  OS.messages.push({ role: 'assistant', content: msg });
   checkKey();
 })();
 </script>
